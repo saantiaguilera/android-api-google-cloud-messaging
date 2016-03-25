@@ -140,8 +140,15 @@ public abstract class PushNotification {
         this.style = style;
     }
 
+    /**
+     * Implement for setting custom stuff from the push
+     * @param push
+     */
     protected abstract void setAdditionalParamsFromPush(Push push);
 
+    /**
+     * Send to the android os the new push notification
+     */
     public void send(){
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context);
         switch (iconSource) {

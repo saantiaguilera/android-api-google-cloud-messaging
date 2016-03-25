@@ -11,9 +11,13 @@ import com.google.android.gms.iid.InstanceID;
 import java.io.IOException;
 import java.util.List;
 
-/* @notes
-:
-    * Manifest must have:
+/** @notes
+ *
+ * Build.gradle (app module) must have:
+
+    compile 'com.google.android.gms:play-services-gcm:8.4.0'
+
+ * Manifest must have:
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
@@ -22,7 +26,7 @@ import java.util.List;
     <permission android:name="[your package].permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
 
-    * Application must have (inside <application>):
+ * Application must have (inside <application>):
 
     <receiver
             android:name="com.google.android.gms.gcm.GcmReceiver"
@@ -31,12 +35,12 @@ import java.util.List;
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
                 <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
-                <category android:name="[your package]" />
+                <category android:name="[package name]" />
             </intent-filter>
         </receiver>
 
         <service
-            android:name="[Path of your GCMListenerService derived class]"
+            android:name="[path to your GCMListenerService]"
             android:exported="false" >
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
@@ -44,14 +48,14 @@ import java.util.List;
         </service>
 
         <service
-            android:name="com.santiago.gcm.InstanceIDListenerService"
+            android:name="[path to your AmalgamaInstanceIDListenerService]"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.android.gms.iid.InstanceID" />
             </intent-filter>
         </service>
         <service
-            android:name="[Path of your GCMManagerService derived class]"
+            android:name="[path to your GCMManagerService]"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.santiago.gcm.GCMManagerService.ACTION_UPDATE_TOKEN" />
@@ -59,126 +63,9 @@ import java.util.List;
             </intent-filter>
         </service>
 
-    * If you will need the token in an Activity or Context derived thing. Register a BroadcastReceiver eg:
+ * Usage eg:
 
-    private BroadcastReceiver mRegistrationBroadcastReceiver;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        mRegistrationBroadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                String token = intent.getStringExtra(GCMManagerService.EXTRA_TOKEN);
-                // use the token
-            }
-        };
-
-        if (checkPlayServices()) { // Always first check if the phone supports GPlay Services
-            Intent intent = new Intent(GCMManagerService.ACTION_REGISTER);
-            startService(intent);
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver, new IntentFilter(GCMManagerService.ACTION_REGISTER_COMPLETED));
-    }
-
-    @Override
-    protected void onPause() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
-        super.onPause();
-    }
-
-    private boolean checkPlayServices() {
-        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
-        int resultCode = apiAvailability.isGooglePlayServicesAvailable(this);
-        if (resultCode != ConnectionResult.SUCCESS) {
-            if (apiAvailability.isUserResolvableError(resultCode)) {
-                apiAvailability.getErrorDialog(this, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST)
-                        .show();
-            } else {
-                Log.w(TAG, "This device is not supported.");
-                finish();
-            }
-            return false;
-        }
-        return true;
-    }
-
- */
-
-
-
-
-
-
-
-
-/*
-
-    * Hay que hacer implementaciones de AmalgamaGCMListenerService con la respuesta a una push y de GCMManagerService para entregar un senderId, topics y actualizar el token al server.
-
-    * hay que hacer una implementacion de AmalgamaInstanceIDListenerService y GCMManager pasandole el class de la implementacion de GCMManagerService (por compatibilidad con lollipop)
-
-    * si en la funcion de actualizar al server se ahce de manera asincronica (una request) hay que llamar a onHandleIntentCompleted con el intent y token dado.
-
-    * hay que agregar en el manifest:
-
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
-    <uses-permission android:name="[agregar el package aca].permission.C2D_MESSAGE" />
-
-    <permission android:name="[agregar el package aca].permission.C2D_MESSAGE"
-        android:protectionLevel="signature" />
-
-    y en <application>
-
-    <receiver
-            android:name="com.google.android.gms.gcm.GcmReceiver"
-            android:exported="true"
-            android:permission="com.google.android.c2dm.permission.SEND" >
-            <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-                <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
-                <category android:name="[agregar el package aca]" />
-            </intent-filter>
-        </receiver>
-
-        <service
-            android:name="[agregar la ruta a la implementacion de AmalgamaGCMListenerService aca]"
-            android:exported="false" >
-            <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-            </intent-filter>
-        </service>
-
-        <service
-            android:name="[agregar la ruta a la implementacion de AmalgamaInstanceIDListenerService aca]"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.android.gms.iid.InstanceID" />
-            </intent-filter>
-        </service>
-        <service
-            android:name="[agregar la ruta a la implementacion de GCMManagerService aca]"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.theamalgama.gcm.GCMManagerService.ACTION_UPDATE_TOKEN" />
-                <action android:name="com.theamalgama.gcm.GCMManagerService.ACTION_REGISTER" />
-            </intent-filter>
-        </service>
-
-    * para inicializar el sistema hay que hacer esto:
-    *
-    *
-    *
-
-    private SoyDeporteGCMManager gcmManager;
+    private CustomGCMManager gcmManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -190,7 +77,7 @@ import java.util.List;
 
     public GCMManager getGcmManager() {
         if(gcmManager==null){
-            gcmManager = new SoyDeporteGCMManager(this);
+            gcmManager = new CustomGCMManager(this);
             gcmManager.setListener(new GCMManager.GCMManagerListener() {
                 @Override
                 public void onRegIDObtained(String string) {
@@ -202,9 +89,7 @@ import java.util.List;
     }
 
     private void requestRegId() {
-
         getGcmManager().requestRegId();
-
     }
 
     @Override
@@ -219,15 +104,7 @@ import java.util.List;
         getGcmManager().onPause();
     }
 
-
-
-
  */
-
-
-
-
-
 public abstract class GCMManagerService extends IntentService {
 
     private static final String TOPIC_PREFIX = "/topics/";
@@ -243,18 +120,32 @@ public abstract class GCMManagerService extends IntentService {
         super(GCMManagerService.class.getName());
     }
 
+    /**
+     * We will only reach here from InstanceIDListenerService, which tells us that the regId changed
+     * or from GCMManager.getRegId, that its just for getting the regId
+     * @param intent
+     */
     @Override
     protected void onHandleIntent(Intent intent) {
         try {
+            //Get the reg id
             InstanceID instanceID = InstanceID.getInstance(this);
             String token = instanceID.getToken(getSenderId(), GoogleCloudMessaging.INSTANCE_ID_SCOPE, null);
 
-            if(sendRegistrationToServer(intent, token) && subscribeTopics(token))
+            //If its sending the regid to the server, then return false (I hope you do that). Else suscribe to topics as usual and send the success handling callback
+            if(sendRegistrationToServer(intent, token)) {
+                subscribeTopics(token);
                 onHandleIntentCompleted(intent, token);
+            }
         } catch (IOException e) { e.printStackTrace(); }
     }
 
-    private boolean subscribeTopics(String token) throws IOException {
+    /**
+     * Suscribe to the topics (if existing)
+     * @param token
+     * @throws IOException
+     */
+    private void subscribeTopics(String token) throws IOException {
         List<String> topicList = getTopicList();
 
         if(topicList!=null && !topicList.isEmpty()) {
@@ -263,8 +154,6 @@ public abstract class GCMManagerService extends IntentService {
             for (String topic : topicList)
                 pubSub.subscribe(token, TOPIC_PREFIX + topic, null);
         }
-
-        return true;
     }
 
     /**
@@ -273,7 +162,10 @@ public abstract class GCMManagerService extends IntentService {
     protected abstract String getSenderId();
 
     /**
-     * Tell your REST Server that the regId is different (maybe check before if intent.getAction().equals(GCMManagerService.ACTION_UPDATE_TOKEN) ??
+     * Tell your REST Server that the regId is different
+     *
+     * (maybe check before if intent.getAction().equals(GCMManagerService.ACTION_UPDATE_TOKEN) ?? Because if its ACTION_REGISTER_TOKEN
+     * you should have already sent it to the ws on the account creation, and since its the same, its useless to do the request again
      *
      * @note <strong> If this task will be async (and you will return false ofc because you dont know yet the response),
      * dont forget to call onHandleIntentCompleted (with this intent, token) after the success </strong>
@@ -289,6 +181,12 @@ public abstract class GCMManagerService extends IntentService {
      */
     protected abstract List<String> getTopicList();
 
+    /**
+     * Called when we have finished handling our intent.
+     * Send to the broadcastreceiver in {@param GCMManager#GCMManager.RegistrationBroadcastReceiver } the new token
+     * @param intent
+     * @param token
+     */
     protected void onHandleIntentCompleted(Intent intent, String token){
         switch (intent.getAction()){
             case ACTION_REGISTER:
